@@ -146,6 +146,8 @@ FILMS = [
      "description": "1960년대 홍콩, 배우자의 불륜을 알게 된 두 이웃이 서로에게 끌리면서도 선을 넘지 않는 이야기. 그리움, 절제, 시간, 이루어지지 못한 사랑."},
     {"title": "루빙화", "title_en": "Lu Bing Hua", "year": 1989, "director": "양리궈", "recommender": "zlexygirlz", "note": "대만영화인데 아직도 기억에남아요",
      "description": "시골 마을의 가난한 소년이 뛰어난 그림 재능을 가졌지만 인정받지 못하고 병으로 떠나는 이야기. 순수함, 재능, 가난, 슬픔, 어린 시절의 꿈."},
+    {"title": "헤드윅", "title_en": "Hedwig and the Angry Inch", "year": 2001, "director": "존 카메론 미첼", "recommender": "vinsvin13", "note": "OST 미쳤어요",
+     "description": "성전환 수술이 실패한 록 가수가 자신의 정체성과 사랑을 찾아 떠나는 뮤지컬. 정체성, 사랑, 음악, 자유, 자기 수용."},
 ]
 
 
