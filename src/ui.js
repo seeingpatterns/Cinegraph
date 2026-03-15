@@ -322,4 +322,4 @@ function updateNodeVisuals(films) {
 // Exports
 // ═══════════════════════════════════════════════
 
-export { buildLegend, bindEvents, findMyStars, resetStars, setUserFilmIndices };
+export { buildLegend, bindEvents, findMyStars, resetStars };
