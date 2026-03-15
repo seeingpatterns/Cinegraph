@@ -144,6 +144,8 @@ FILMS = [
      "description": "헤비급 챔피언 무하마드 알리에게 도전한 무명 복서 척 웹너의 실화. 끈기, 자존감, 평범한 사람의 위대함, 영화 록키의 실제 모델."},
     {"title": "화양연화", "title_en": "In the Mood for Love", "year": 2000, "director": "왕가위", "recommender": "yunjeongeom778",
      "description": "1960년대 홍콩, 배우자의 불륜을 알게 된 두 이웃이 서로에게 끌리면서도 선을 넘지 않는 이야기. 그리움, 절제, 시간, 이루어지지 못한 사랑."},
+    {"title": "루빙화", "title_en": "Lu Bing Hua", "year": 1989, "director": "양리궈", "recommender": "zlexygirlz", "note": "대만영화인데 아직도 기억에남아요",
+     "description": "시골 마을의 가난한 소년이 뛰어난 그림 재능을 가졌지만 인정받지 못하고 병으로 떠나는 이야기. 순수함, 재능, 가난, 슬픔, 어린 시절의 꿈."},
 ]
 
 
