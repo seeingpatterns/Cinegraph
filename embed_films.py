@@ -96,7 +96,8 @@ FILMS = [
      "description": "세 명의 히스패닉 사촌이 갱, 감옥, 경찰이라는 다른 길을 걸으며 정체성과 충성을 시험받는 이야기."},
     {"title": "대부", "title_en": "The Godfather", "year": 1972, "director": "프란시스 코폴라", "recommender": "chris_chang_arong",
      "description": "이탈리아 마피아 가문의 권력 승계와 가족 이야기. 권력, 가족, 부패, 명예와 폭력의 모순."},
-    {"title": "미션", "title_en": "The Mission", "year": 1986, "director": "롤랑 조페", "recommender": "chris_chang_arong",
+    {"title": "미션", "title_en": "The Mission", "year": 1986, "director": "롤랑 조페", "recommender": "chris_chang_arong / copywriter.cd",
+     "note": "삶과 삶의 목표를 지키고자 하는 선교사들의 숭고한 이야기. 어린 나이에 거대한 감동을 안겨준 영화",
      "description": "남미 원주민을 지키려는 선교사와 식민 권력의 충돌. 신앙, 희생, 식민주의, 양심의 선택."},
     {"title": "브레이브하트", "title_en": "Braveheart", "year": 1995, "director": "멜 깁슨", "recommender": "abraham09130",
      "description": "스코틀랜드 독립을 위해 싸운 윌리엄 월레스의 이야기. 자유, 희생, 정체성, 저항."},
@@ -148,6 +149,14 @@ FILMS = [
      "description": "시골 마을의 가난한 소년이 뛰어난 그림 재능을 가졌지만 인정받지 못하고 병으로 떠나는 이야기. 순수함, 재능, 가난, 슬픔, 어린 시절의 꿈."},
     {"title": "헤드윅", "title_en": "Hedwig and the Angry Inch", "year": 2001, "director": "존 카메론 미첼", "recommender": "vinsvin13", "note": "OST 미쳤어요",
      "description": "성전환 수술이 실패한 록 가수가 자신의 정체성과 사랑을 찾아 떠나는 뮤지컬. 정체성, 사랑, 음악, 자유, 자기 수용."},
+    {"title": "우리들", "title_en": "The World of Us", "year": 2016, "director": "윤가은", "recommender": "gims564724", "note": "초딩영화인데 잊혀지지 않음",
+     "description": "전학 온 소녀가 첫 친구를 사귀지만 관계의 잔인함을 경험하는 이야기. 우정, 배신, 순수함, 어린이의 세계, 소외."},
+    {"title": "길버트 그레이프", "title_en": "What's Eating Gilbert Grape", "year": 1993, "director": "라세 할스트롬", "recommender": "actressj76",
+     "description": "작은 마을에 갇힌 청년이 장애를 가진 동생과 비만인 어머니를 돌보며 자신의 삶을 찾아가는 이야기. 가족, 희생, 갇힘, 성장."},
+    {"title": "여인의 향기", "title_en": "Scent of a Woman", "year": 1992, "director": "마틴 브레스트", "recommender": "actressj76",
+     "description": "맹인 퇴역 군인과 아르바이트 학생이 함께 떠나는 여행. 존엄, 용기, 정의, 삶의 의미, 탱고."},
+    {"title": "어둠 속의 댄서", "title_en": "Dancer in the Dark", "year": 2000, "director": "라스 폰 트리에", "recommender": "actressj76",
+     "description": "시력을 잃어가는 이민자 여성이 아들의 수술비를 위해 모든 것을 희생하는 뮤지컬 비극. 희생, 모성, 불의, 음악과 현실."},
 ]
 
 

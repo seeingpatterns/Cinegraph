@@ -1,9 +1,9 @@
 # Cinegraph — 영화 임베딩 성좌도
 
-> **51편의 추천 영화를 AI 임베딩으로 분석하고, Neural Constellation으로 시각화하는 프로젝트**
+> **56편의 추천 영화를 AI 임베딩으로 분석하고, Neural Constellation으로 시각화하는 프로젝트**
 
 인스타그램에서 팔로워들에게 "인생 영화 하나만 추천해주세요"라고 물었습니다.
-51편의 영화가 모였고, 각 영화의 시놉시스·테마·추천인 코멘트를 Google Gemini Embedding API로 벡터화한 뒤,
+56편의 영화가 모였고, 각 영화의 시놉시스·테마·추천인 코멘트를 Google Gemini Embedding API로 벡터화한 뒤,
 UMAP으로 2D 좌표로 변환하고, Three.js로 인터랙티브 성좌도를 만들었습니다.
 
 비슷한 감성의 영화는 가까이, 다른 장르는 멀리 — AI가 읽어낸 영화들의 관계를 눈으로 볼 수 있습니다.
@@ -36,7 +36,7 @@ https://cinegraph.vercel.app?user=chris_chang_arong
 ## 작동 방식
 
 ```
-영화 51편 텍스트 (시놉시스 + 테마 + 추천인 코멘트)
+영화 56편 텍스트 (시놉시스 + 테마 + 추천인 코멘트)
     ↓  Google Gemini Embedding API
 768차원 벡터
     ↓  UMAP (2D 축소)
