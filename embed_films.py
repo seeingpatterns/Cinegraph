@@ -1,9 +1,9 @@
 """
-영화 48편 임베딩 + UMAP 2D 변환 스크립트
+영화 50편 임베딩 + UMAP 2D 변환 스크립트
 ========================================
 사용법:
-  1. pip install google-genai umap-learn scikit-learn numpy
-  2. export GEMINI_API_KEY="your-api-key"
+  1. pip install google-genai umap-learn scikit-learn numpy python-dotenv
+  2. .env 파일에 GEMINI_API_KEY=your-api-key 입력
   3. python embed_films.py
 
 결과: films_embedded.json 파일이 생성됨
@@ -12,7 +12,10 @@
 import json
 import os
 import numpy as np
+from dotenv import load_dotenv
 from google import genai
+
+load_dotenv()  # .env에서 GEMINI_API_KEY 자동 로드
 
 # ─── 영화 데이터 ───
 FILMS = [
