@@ -1,6 +1,6 @@
 # Plan.me
 
-- **Goal:** Minimal Trace backend: DB with User, Article, Comment; success = insert one User row.
+- **Goal:** Minimal Trace backend: DB with User, Review, Comment; success = insert one User row.
 - **Phase 1:** DB schema + Docker init; backend health + DB client check; no auth yet.
 - **Phase 2:** User profile (slug, display_name, bio, is_public), "write first then see others," recommender links.
 - **Out of scope for now:** Auth, production deploy, full API.
@@ -11,7 +11,7 @@
 ## Progress (작업 끝나면 `[ ]` → `[x]`로 바꾸기)
 
 ### Phase 1
-- [x] DB 스키마 (users, articles, comments) + Docker init
+- [x] DB 스키마 (users, reviews, comments) + Docker init
 - [x] Backend `/health`, `/api/schema-check`, `/api/dev/seed-one-user`
 - [x] DBeaver/클라이언트에서 DB 연결 확인
 - [x] User 1행 insert 검증

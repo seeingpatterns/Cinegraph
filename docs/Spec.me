@@ -1,7 +1,6 @@
 # Spec.me
 
-- **DB:** Three tables: `users` (id, identifier, created_at), `articles` (id, user_id, title/body, created_at), `comments` (id, article_id, user_id, body, created_at). Add slug, display_name, bio, is_public to users in Phase 2.
-- **Reviews:** Store user reviews in `reviews` table (film_title_en, content, created_at) and replies in `comments` (review_id, author_thread_id, content, created_at). Films and recommenders stay in films_embedded.json.
+- **DB:** Three tables: `users` (id, thread_id, created_at), `reviews` (id, user_id, film_title_en, content, created_at), `comments` (id, review_id, user_id, body, created_at). Add slug, display_name, bio, is_public to users in Phase 2. Films and recommenders stay in films_embedded.json.
 - **Docker:** PostgreSQL container; schema applied on first run via init script (e.g. SQL in `docker-entrypoint-initdb.d` or mounted init volume).
 - **Backend:** Express; `/health`; DB client checks connection and that tables exist; one endpoint or script that inserts a single User row for validation.
 - **Validation:** "DB client confirms schema is present" = tables exist and one User row can be inserted and read back.
