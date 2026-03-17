@@ -1,4 +1,4 @@
-import { loadFilms, loadReviews } from './data.js';
+import { loadFilms, loadReviews, buildRecommenderProfiles } from './data.js';
 import { buildConstellation, startRender } from './scene.js';
 import { buildLegend, bindEvents, setUserFilmIndices, setReviewsMap, findMyStars, resetStars, bindReviewEvents } from './ui.js';
 
@@ -33,6 +33,10 @@ async function init() {
   // 헤더 카운터 업데이트
   document.querySelector('.header-right').innerHTML = `${films.length} Films<br>Neural Constellation`;
   document.getElementById('counter').textContent = `${films.length} films`;
+
+  // 작업 1-2: 추천인별 프로필 집계
+  const recommenderProfiles = buildRecommenderProfiles(films);
+  console.log('[Cinegraph] 추천인 프로필:', recommenderProfiles);
 
   buildConstellation(films, highlightUser, userFilmIndices);
   buildLegend(films);

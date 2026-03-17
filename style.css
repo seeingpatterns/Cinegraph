@@ -339,6 +339,112 @@
     margin-top: 8px; font-size: 11px; color: #FF6B6B; display: none;
   }
 
+  /* ── 취향 DNA 카드 ── */
+  .dna-card {
+    position: fixed; top: 50%; right: -380px; z-index: 300;
+    transform: translateY(-50%);
+    width: 320px;
+    background: rgba(8,8,18,0.95);
+    border: 1px solid rgba(30,227,207,0.15);
+    border-radius: 3px;
+    padding: 24px;
+    backdrop-filter: blur(16px);
+    transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .dna-card.visible { right: 24px; }
+
+  .dna-card::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: linear-gradient(to bottom, #1EE3CF, #6B48FF);
+    border-radius: 3px 0 0 3px;
+  }
+
+  .dna-close {
+    position: absolute; top: 8px; right: 12px;
+    background: none; border: none; color: #555;
+    font-size: 18px; cursor: pointer; line-height: 1;
+  }
+  .dna-close:hover { color: #e8e4df; }
+
+  .dna-header { margin-bottom: 20px; }
+
+  .dna-id {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px; font-weight: 600;
+    color: #1EE3CF; letter-spacing: 1px;
+  }
+
+  .dna-count {
+    font-size: 11px; color: #7a7670;
+    margin-top: 4px; letter-spacing: 0.5px;
+  }
+
+  .dna-section { margin-bottom: 16px; }
+
+  .dna-label {
+    font-size: 9px; color: #555;
+    letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  /* 클러스터 바 차트 */
+  .dna-bar-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 5px;
+  }
+
+  .dna-bar-name {
+    font-size: 10px; color: #7a7670;
+    width: 130px; flex-shrink: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .dna-bar-track {
+    flex: 1; height: 6px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 3px; overflow: hidden;
+  }
+
+  .dna-bar-fill {
+    height: 100%; border-radius: 3px;
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .dna-bar-count {
+    font-size: 9px; color: #555; width: 20px; text-align: right;
+  }
+
+  /* 키워드 태그 */
+  .dna-keywords {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+
+  .dna-keyword {
+    font-size: 11px; color: #d4c5a9;
+    background: rgba(212,197,169,0.08);
+    border: 1px solid rgba(212,197,169,0.12);
+    border-radius: 2px; padding: 3px 10px;
+    letter-spacing: 0.3px;
+  }
+
+  /* 취향 쌍둥이 */
+  .dna-twins { display: flex; flex-direction: column; gap: 6px; }
+
+  .dna-twin {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px;
+  }
+
+  .dna-twin-name {
+    color: #C084FC; font-weight: 500;
+  }
+
+  .dna-twin-score {
+    font-size: 9px; color: #555;
+    letter-spacing: 0.5px;
+  }
+
   /* ── 모바일 반응형 ── */
   @media (max-width: 768px) {
     .header { padding: 16px 16px; }
@@ -364,6 +470,16 @@
 
     /* 보물찾기 배너 */
     .treasure-banner { top: 100px; width: 90%; font-size: 11px; padding: 8px 16px; }
+
+    /* DNA 카드: 모바일에서는 하단 슬라이드업 */
+    .dna-card {
+      top: auto; right: 0; bottom: -100%;
+      left: 0; width: 100%;
+      transform: none;
+      border-radius: 12px 12px 0 0;
+      max-height: 60vh; overflow-y: auto;
+    }
+    .dna-card.visible { bottom: 0; right: 0; }
 
     /* 영화 카드: 화면 하단 고정, 좌우 잘림 방지 */
     .film-card {

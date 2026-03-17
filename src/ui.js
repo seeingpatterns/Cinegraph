@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { COLORS, COLORS_HEX, CLUSTER_NAMES } from './data.js';
+import { COLORS, COLORS_HEX, CLUSTER_NAMES, buildRecommenderProfiles } from './data.js';
 import {
   camera, group, composer, renderer, bloomPass,
   filmNodePoints, filmPositions3D, sparkles,
@@ -387,6 +387,9 @@ function findMyStars(films) {
   // UI 업데이트
   document.getElementById('reset-btn').style.display = 'inline-block';
   document.getElementById('find-input').style.borderColor = '#1EE3CF';
+
+  // 취향 DNA 카드 표시
+  showDnaCard(input, films);
 }
 
 // ═══════════════════════════════════════════════
@@ -401,7 +404,134 @@ function resetStars(films) {
   document.getElementById('reset-btn').style.display = 'none';
   document.getElementById('find-input').value = '';
   document.getElementById('find-input').style.borderColor = '';
+  document.getElementById('dna-card').classList.remove('visible');
   updateNodeVisuals(films);
+}
+
+// ═══════════════════════════════════════════════
+// 취향 DNA 카드
+// ═══════════════════════════════════════════════
+
+function showDnaCard(userId, films) {
+  const profiles = buildRecommenderProfiles(films);
+  const profile = profiles[userId];
+  if (!profile) return;
+
+  const card = document.getElementById('dna-card');
+
+  // 아이디 + 영화 수
+  document.getElementById('dna-id').textContent = `@${userId}`;
+  document.getElementById('dna-count').textContent = `${profile.count}편 추천`;
+
+  // 클러스터 분포 바 차트
+  const barsEl = document.getElementById('dna-bars');
+  barsEl.innerHTML = '';
+  const maxCount = Math.max(...Object.values(profile.clusters), 1);
+
+  // 클러스터를 편수 내림차순 정렬
+  const sortedClusters = Object.entries(profile.clusters)
+    .sort((a, b) => b[1] - a[1]);
+
+  sortedClusters.forEach(([cl, count]) => {
+    const row = document.createElement('div');
+    row.className = 'dna-bar-row';
+    const pct = Math.round((count / maxCount) * 100);
+    const color = COLORS_HEX[Number(cl) % COLORS_HEX.length];
+    const name = CLUSTER_NAMES[Number(cl)] || `Cluster ${cl}`;
+    row.innerHTML = `
+      <div class="dna-bar-name" title="${name}">${name}</div>
+      <div class="dna-bar-track">
+        <div class="dna-bar-fill" style="width:0%;background:${color}"></div>
+      </div>
+      <div class="dna-bar-count">${count}</div>
+    `;
+    barsEl.appendChild(row);
+
+    // 애니메이션: 약간 딜레이 후 width 적용
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        row.querySelector('.dna-bar-fill').style.width = `${pct}%`;
+      });
+    });
+  });
+
+  // 대표 키워드 (상위 3개)
+  const kwEl = document.getElementById('dna-keywords');
+  kwEl.innerHTML = '';
+  profile.keywords.slice(0, 3).forEach(kw => {
+    const tag = document.createElement('span');
+    tag.className = 'dna-keyword';
+    tag.textContent = kw;
+    kwEl.appendChild(tag);
+  });
+
+  // 취향 쌍둥이 찾기
+  const twinsEl = document.getElementById('dna-twins');
+  twinsEl.innerHTML = '';
+  const twins = findTasteTwins(userId, profiles);
+
+  if (twins.length === 0) {
+    twinsEl.innerHTML = '<span style="font-size:11px;color:#555">아직 데이터가 부족해요</span>';
+  } else {
+    twins.forEach(({ name, similarity }) => {
+      const div = document.createElement('div');
+      div.className = 'dna-twin';
+      div.innerHTML = `
+        <span class="dna-twin-name">@${name}</span>
+        <span class="dna-twin-score">${Math.round(similarity * 100)}% 일치</span>
+      `;
+      twinsEl.appendChild(div);
+    });
+  }
+
+  // 슬라이드인
+  card.classList.add('visible');
+
+  // 닫기 버튼
+  document.getElementById('dna-close').onclick = () => card.classList.remove('visible');
+}
+
+/**
+ * 코사인 유사도로 취향 쌍둥이 찾기
+ * 클러스터 분포 벡터를 비교해서 가장 비슷한 추천인 1~2명 반환
+ */
+function findTasteTwins(userId, profiles) {
+  const myProfile = profiles[userId];
+  if (!myProfile || myProfile.count < 1) return [];
+
+  // 클러스터 분포를 7차원 벡터로 변환
+  function toVector(clusters) {
+    const v = [0, 0, 0, 0, 0, 0, 0];
+    for (const [cl, count] of Object.entries(clusters)) {
+      v[Number(cl)] = count;
+    }
+    return v;
+  }
+
+  function cosineSim(a, b) {
+    let dot = 0, magA = 0, magB = 0;
+    for (let i = 0; i < a.length; i++) {
+      dot += a[i] * b[i];
+      magA += a[i] * a[i];
+      magB += b[i] * b[i];
+    }
+    if (magA === 0 || magB === 0) return 0;
+    return dot / (Math.sqrt(magA) * Math.sqrt(magB));
+  }
+
+  const myVec = toVector(myProfile.clusters);
+  const results = [];
+
+  for (const [name, profile] of Object.entries(profiles)) {
+    if (name === userId) continue;
+    if (profile.count < 2) continue; // 1편만 추천한 사람은 제외
+    const sim = cosineSim(myVec, toVector(profile.clusters));
+    results.push({ name, similarity: sim });
+  }
+
+  return results
+    .sort((a, b) => b.similarity - a.similarity)
+    .slice(0, 2);
 }
 
 // ═══════════════════════════════════════════════

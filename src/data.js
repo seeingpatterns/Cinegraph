@@ -13,7 +13,15 @@ export const COLORS = [
 
 export const COLORS_HEX = ['#1EE3CF','#6B48FF','#125D98','#CFD6DE','#FF6B6B','#C084FC','#34D399'];
 
-export const CLUSTER_NAMES = ['클러스터 A','클러스터 B','클러스터 C','클러스터 D','클러스터 E','클러스터 F','클러스터 G'];
+export const CLUSTER_NAMES = [
+  '인생이라는 이름의 모험',
+  '우리가 서로를 안는 순간',
+  '말하지 못한 것들의 아름다움',
+  '가장자리에서 빛나는 사람들',
+  '꽃과 불꽃 사이의 고요',
+  '만약이라는 이름의 세계',
+  '시대를 관통하는 울림',
+];
 
 function generateDemoData() {
   const raw = [
@@ -115,6 +123,56 @@ export async function loadReviews() {
   } catch {
     return {};
   }
+}
+
+/**
+ * 추천인별 프로필 집계
+ * @param {Array} films - films_embedded.json 데이터
+ * @returns {Object} { recommender_id: { count, clusters, decades, keywords } }
+ */
+export function buildRecommenderProfiles(films) {
+  const profiles = {};
+
+  films.forEach(film => {
+    // '/' 로 구분된 복수 추천인 파싱 (공백 trim)
+    const recommenders = film.recommender.split(/\s*\/\s*/).map(r => r.trim()).filter(Boolean);
+
+    recommenders.forEach(rec => {
+      if (!profiles[rec]) {
+        profiles[rec] = { count: 0, clusters: {}, decades: {}, keywords: [] };
+      }
+      const p = profiles[rec];
+
+      // 추천 영화 수
+      p.count++;
+
+      // 클러스터 분포
+      const cl = String(film.cluster);
+      p.clusters[cl] = (p.clusters[cl] || 0) + 1;
+
+      // 연대 분포 (1980 → '1980s')
+      const decade = `${Math.floor(film.year / 10) * 10}s`;
+      p.decades[decade] = (p.decades[decade] || 0) + 1;
+
+      // description에서 마지막 문장의 키워드 추출 (쉼표 구분)
+      const desc = film.description || '';
+      const lastSentence = desc.split(/[.!?。]\s*/).filter(Boolean).pop() || '';
+      const kws = lastSentence.split(/[,，]\s*/).map(k => k.trim()).filter(k => k.length > 0 && k.length < 15);
+      p.keywords.push(...kws);
+    });
+  });
+
+  // 키워드 중복 제거 + 빈도순 정렬 → 상위 5개만 남기기
+  for (const rec of Object.keys(profiles)) {
+    const freq = {};
+    profiles[rec].keywords.forEach(k => { freq[k] = (freq[k] || 0) + 1; });
+    profiles[rec].keywords = Object.entries(freq)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([k]) => k);
+  }
+
+  return profiles;
 }
 
 export async function loadFilms() {
