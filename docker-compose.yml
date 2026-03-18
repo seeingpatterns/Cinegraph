@@ -33,7 +33,7 @@ services:
       NODE_ENV: development
       PORT: 3000
       DATABASE_URL: postgresql://dev:dev@db:5432/trace
-      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:-$2b$12$placeholder}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:-$$2b$$12$$NSkT1UYpF387gpX76XUL7eMegwL1UvHrLIxrtWOldfi1zrdI0RTei}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5174}
     ports:
       - "3001:3000"   # 호스트 3001 → 컨테이너 3000 (Psychpaper이 3000 사용 중)
