@@ -229,7 +229,18 @@ app.put('/api/reviews/:id', authLimiter, async (req, res) => {
 // POST /api/reviews/:id/comments — 댓글 작성
 app.post('/api/reviews/:id/comments', authLimiter, async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'DB not configured' });
-  const { author_thread_id, body } = req.body;
+  const { author_thread_id, body, password } = req.body;
+  const hash = process.env.ADMIN_PASSWORD_HASH;
+  if (!hash || !password) {
+    logger.warn({ ip: req.ip, path: req.path }, 'auth failed: missing credentials');
+    return res.status(401).json({ error: '비밀번호가 틀렸어요' });
+  }
+  const match = await bcrypt.compare(password, hash);
+  if (!match) {
+    logger.warn({ ip: req.ip, path: req.path }, 'auth failed: wrong password');
+    return res.status(401).json({ error: '비밀번호가 틀렸어요' });
+  }
+  logger.info({ ip: req.ip, path: req.path, author: author_thread_id }, 'auth success: comment create');
   if (!author_thread_id || !body) {
     return res.status(400).json({ error: 'author_thread_id와 body가 필요해요' });
   }
