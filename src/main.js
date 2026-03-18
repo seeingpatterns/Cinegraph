@@ -23,7 +23,17 @@ async function init() {
     if (userFilmIndices.length > 0) {
       const banner = document.getElementById('treasure-banner');
       banner.style.display = 'block';
-      banner.innerHTML = `<span class="user-name">@${highlightUser}</span> 님이 추천한 영화 <span class="found-count">${userFilmIndices.length}</span>편이 빛나고 있어요! 찾아보세요`;
+      banner.textContent = '';
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'user-name';
+      nameSpan.textContent = `@${highlightUser}`;
+      banner.appendChild(nameSpan);
+      banner.appendChild(document.createTextNode(' 님이 추천한 영화 '));
+      const countSpan = document.createElement('span');
+      countSpan.className = 'found-count';
+      countSpan.textContent = userFilmIndices.length;
+      banner.appendChild(countSpan);
+      banner.appendChild(document.createTextNode('편이 빛나고 있어요! 찾아보세요'));
     }
   }
 

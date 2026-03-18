@@ -206,7 +206,7 @@ app.put('/api/reviews/:id', authLimiter, async (req, res) => {
 });
 
 // POST /api/reviews/:id/comments — 댓글 작성
-app.post('/api/reviews/:id/comments', async (req, res) => {
+app.post('/api/reviews/:id/comments', authLimiter, async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'DB not configured' });
   const { author_thread_id, body } = req.body;
   if (!author_thread_id || !body) {

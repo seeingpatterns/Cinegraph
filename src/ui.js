@@ -509,10 +509,14 @@ function showDnaCard(userId, films) {
     twins.forEach(({ name, similarity }) => {
       const div = document.createElement('div');
       div.className = 'dna-twin';
-      div.innerHTML = `
-        <span class="dna-twin-name">@${name}</span>
-        <span class="dna-twin-score">${Math.round(similarity * 100)}% 일치</span>
-      `;
+      const twinName = document.createElement('span');
+      twinName.className = 'dna-twin-name';
+      twinName.textContent = `@${name}`;
+      div.appendChild(twinName);
+      const twinScore = document.createElement('span');
+      twinScore.className = 'dna-twin-score';
+      twinScore.textContent = `${Math.round(similarity * 100)}% 일치`;
+      div.appendChild(twinScore);
       twinsEl.appendChild(div);
     });
   }
