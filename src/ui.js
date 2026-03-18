@@ -29,7 +29,7 @@ export function setReviewsMap(map) { _reviewsMap = map; }
 let _activeThreadId = '';
 let _currentFilmTitleEn = '';
 
-const API_BASE = 'http://localhost:3001';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
 
 // ═══════════════════════════════════════════════
 // Raycaster
@@ -214,6 +214,9 @@ function onMouseMove(e, films) {
     return;
   }
 
+  // 카드가 고정된 상태면 호버 업데이트 건너뛰기
+  if (pinnedIdx >= 0) return;
+
   // Raycaster → filmNodePoints
   if (!filmNodePoints) return;
   raycaster.setFromCamera(mouseNDC, camera);
@@ -224,7 +227,7 @@ function onMouseMove(e, films) {
     // 아이디 검색 중이면 그 사람 추천 영화만 반응
     const isFiltered = userFilmIndices.length > 0 && !userFilmIndices.includes(idx);
     if (isFiltered) {
-      if (hoveredIdx >= 0 && pinnedIdx < 0) {
+      if (hoveredIdx >= 0) {
         hoveredIdx = -1;
         document.getElementById('card').classList.remove('visible');
       }
@@ -247,7 +250,7 @@ function onMouseMove(e, films) {
     }
     renderer.domElement.style.cursor = 'pointer';
   } else {
-    if (hoveredIdx >= 0 && pinnedIdx < 0) {
+    if (hoveredIdx >= 0) {
       hoveredIdx = -1;
       document.getElementById('card').classList.remove('visible');
     }
@@ -489,6 +492,201 @@ function showDnaCard(userId, films) {
 
   // 닫기 버튼
   document.getElementById('dna-close').onclick = () => card.classList.remove('visible');
+
+  // 카드 저장 버튼
+  document.getElementById('dna-save').onclick = () => {
+    renderDnaCardImage(userId, profile, twins);
+  };
+}
+
+// ═══════════════════════════════════════════════
+// 취향 DNA 카드 → PNG 이미지 렌더링
+// ═══════════════════════════════════════════════
+
+function renderDnaCardImage(userId, profile, twins) {
+  const W = 1080, H = 1080;
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // 배경
+  ctx.fillStyle = '#1A1A2E';
+  ctx.fillRect(0, 0, W, H);
+
+  // 좌측 그래디언트 액센트 라인
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, '#1EE3CF');
+  grad.addColorStop(1, '#6B48FF');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 6, H);
+
+  // 상단 로고
+  ctx.fillStyle = '#d4c5a9';
+  ctx.font = '600 42px "Cormorant Garamond", Georgia, serif';
+  ctx.letterSpacing = '8px';
+  ctx.fillText('CINEGRAPH', 60, 90);
+  ctx.letterSpacing = '0px';
+
+  ctx.fillStyle = '#555';
+  ctx.font = '300 18px "DM Sans", "Noto Sans KR", sans-serif';
+  ctx.fillText('영화 임베딩 성좌도', 60, 120);
+
+  // 구분선
+  ctx.strokeStyle = 'rgba(30,227,207,0.2)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(60, 150);
+  ctx.lineTo(W - 60, 150);
+  ctx.stroke();
+
+  // 추천인 아이디
+  ctx.fillStyle = '#1EE3CF';
+  ctx.font = '600 48px "Cormorant Garamond", Georgia, serif';
+  ctx.fillText(`@${userId}`, 60, 220);
+
+  // 추천 영화 수
+  ctx.fillStyle = '#7a7670';
+  ctx.font = '300 22px "DM Sans", "Noto Sans KR", sans-serif';
+  ctx.fillText(`${profile.count}편 추천`, 60, 260);
+
+  // 클러스터 분포 섹션
+  ctx.fillStyle = '#555';
+  ctx.font = '300 14px "DM Sans", sans-serif';
+  ctx.letterSpacing = '3px';
+  ctx.fillText('CLUSTER DISTRIBUTION', 60, 320);
+  ctx.letterSpacing = '0px';
+
+  const sortedClusters = Object.entries(profile.clusters)
+    .sort((a, b) => b[1] - a[1]);
+  const maxCount = Math.max(...Object.values(profile.clusters), 1);
+  const barStartX = 60;
+  const barLabelW = 300;
+  const barTrackW = 520;
+  const barH = 18;
+  let barY = 350;
+
+  sortedClusters.forEach(([cl, count]) => {
+    const name = CLUSTER_NAMES[Number(cl)] || `Cluster ${cl}`;
+    const color = COLORS_HEX[Number(cl) % COLORS_HEX.length];
+    const pct = count / maxCount;
+
+    // 클러스터 이름
+    ctx.fillStyle = '#7a7670';
+    ctx.font = '300 20px "DM Sans", "Noto Sans KR", sans-serif';
+    ctx.fillText(name, barStartX, barY + 14);
+
+    // 바 트랙 배경
+    ctx.fillStyle = 'rgba(255,255,255,0.04)';
+    roundRect(ctx, barStartX + barLabelW, barY, barTrackW, barH, 4);
+
+    // 바 채움
+    ctx.fillStyle = color;
+    const fillW = Math.max(barTrackW * pct, 4);
+    roundRect(ctx, barStartX + barLabelW, barY, fillW, barH, 4);
+
+    // 편수
+    ctx.fillStyle = '#555';
+    ctx.font = '300 16px "DM Sans", sans-serif';
+    ctx.fillText(`${count}`, barStartX + barLabelW + barTrackW + 16, barY + 14);
+
+    barY += 48;
+  });
+
+  // 대표 키워드 섹션
+  let kwY = barY + 30;
+  ctx.fillStyle = '#555';
+  ctx.font = '300 14px "DM Sans", sans-serif';
+  ctx.letterSpacing = '3px';
+  ctx.fillText('KEYWORDS', 60, kwY);
+  ctx.letterSpacing = '0px';
+  kwY += 36;
+
+  let kwX = 60;
+  profile.keywords.slice(0, 3).forEach(kw => {
+    ctx.font = '400 22px "DM Sans", "Noto Sans KR", sans-serif';
+    const tw = ctx.measureText(kw).width;
+    const padX = 20, padY = 10, tagH = 40;
+
+    // 태그 배경
+    ctx.fillStyle = 'rgba(212,197,169,0.08)';
+    ctx.strokeStyle = 'rgba(212,197,169,0.15)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, kwX, kwY, tw + padX * 2, tagH, 4, true);
+
+    // 태그 텍스트
+    ctx.fillStyle = '#d4c5a9';
+    ctx.fillText(kw, kwX + padX, kwY + 28);
+
+    kwX += tw + padX * 2 + 14;
+  });
+
+  // 취향 쌍둥이 섹션
+  let twinY = kwY + 80;
+  ctx.fillStyle = '#555';
+  ctx.font = '300 14px "DM Sans", sans-serif';
+  ctx.letterSpacing = '3px';
+  ctx.fillText('TASTE TWINS', 60, twinY);
+  ctx.letterSpacing = '0px';
+  twinY += 36;
+
+  if (twins.length === 0) {
+    ctx.fillStyle = '#555';
+    ctx.font = '300 20px "DM Sans", "Noto Sans KR", sans-serif';
+    ctx.fillText('아직 데이터가 부족해요', 60, twinY);
+  } else {
+    twins.forEach(({ name, similarity }) => {
+      ctx.fillStyle = '#C084FC';
+      ctx.font = '500 24px "DM Sans", "Noto Sans KR", sans-serif';
+      ctx.fillText(`@${name}`, 60, twinY);
+
+      const nameW = ctx.measureText(`@${name}`).width;
+      ctx.fillStyle = '#555';
+      ctx.font = '300 18px "DM Sans", sans-serif';
+      ctx.fillText(`${Math.round(similarity * 100)}% 일치`, 60 + nameW + 16, twinY);
+
+      twinY += 40;
+    });
+  }
+
+  // 하단 URL
+  ctx.fillStyle = '#555';
+  ctx.font = '300 16px "DM Sans", sans-serif';
+  ctx.letterSpacing = '1px';
+  const url = 'cinegraph-app.vercel.app';
+  const urlW = ctx.measureText(url).width;
+  ctx.fillText(url, (W - urlW) / 2, H - 40);
+  ctx.letterSpacing = '0px';
+
+  // 하단 구분선
+  ctx.strokeStyle = 'rgba(30,227,207,0.15)';
+  ctx.beginPath();
+  ctx.moveTo(60, H - 70);
+  ctx.lineTo(W - 60, H - 70);
+  ctx.stroke();
+
+  // 다운로드
+  const link = document.createElement('a');
+  link.download = `cinegraph-${userId}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+/** 둥근 사각형 헬퍼 */
+function roundRect(ctx, x, y, w, h, r, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  ctx.fill();
+  if (stroke) ctx.stroke();
 }
 
 /**

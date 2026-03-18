@@ -3,15 +3,19 @@
  * DB(PostgreSQL) 연결 예시 포함
  */
 import express from 'express';
+import helmet from 'helmet';
 import pg from 'pg';
 import bcrypt from 'bcrypt';
 
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.use(helmet());
+
 // 로컬 프론트엔드(Vite)에서 API 호출 허용
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5174');
+  const allowedOrigin = process.env.CORS_ORIGIN || 'http://localhost:5174';
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.sendStatus(200);
