@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import pg from 'pg';
 import bcrypt from 'bcrypt';
 import rateLimit from 'express-rate-limit';
+import { readFileSync } from 'node:fs';
 import logger from './logger.js';
 
 const app = express();
@@ -57,6 +58,11 @@ const pool = process.env.DATABASE_URL
   : null;
 
 app.use(express.json());
+
+// ── Phase 2-1: 영화 데이터 로드 ──
+const filmsData = JSON.parse(
+  readFileSync(process.env.FILMS_JSON_PATH || '../films_embedded.json', 'utf-8')
+);
 
 // ── Auth helper ──
 async function requireAdmin(req, res) {
@@ -205,8 +211,8 @@ app.post('/api/reviews', authLimiter, async (req, res) => {
   }
 });
 
-// PUT /api/reviews/:id — 감상평 수정
-app.put('/api/reviews/:id', authLimiter, async (req, res) => {
+// PUT /api/reviews/:id — 감상평 수정 (숫자 ID만)
+app.put('/api/reviews/:id(\\d+)', authLimiter, async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'DB not configured' });
   const { content, password } = req.body;
   const authed = await requireAdmin(req, res);
@@ -244,6 +250,90 @@ app.post('/api/reviews/:id/comments', authLimiter, async (req, res) => {
       [req.params.id, author_thread_id, body]
     );
     res.status(201).json(rows[0]);
+  } catch (e) {
+    logger.error({ ip: req.ip, path: req.path, err: e.message }, 'server error');
+    res.status(500).json({
+      error: '서버 오류가 발생했어요',
+      ...(process.env.NODE_ENV !== 'production' && { detail: e.message }),
+    });
+  }
+});
+
+// ── Phase 2-1: Films + Progress + UPSERT ──
+
+// GET /api/films — 전체 영화 + 내 상태
+app.get('/api/films', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'DB not configured' });
+  try {
+    const { rows } = await pool.query(
+      'SELECT film_title_en, status, content FROM reviews'
+    );
+    const reviewMap = new Map(rows.map(r => [r.film_title_en, r]));
+    const films = filmsData.map(f => ({
+      ...f,
+      status: reviewMap.get(f.title_en)?.status ?? 'unwatched',
+      content: reviewMap.get(f.title_en)?.content ?? null,
+    }));
+    res.json({ films });
+  } catch (e) {
+    logger.error({ ip: req.ip, path: req.path, err: e.message }, 'server error');
+    res.status(500).json({
+      error: '서버 오류가 발생했어요',
+      ...(process.env.NODE_ENV !== 'production' && { detail: e.message }),
+    });
+  }
+});
+
+// GET /api/progress — 진행률 통계
+app.get('/api/progress', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'DB not configured' });
+  try {
+    const { rows } = await pool.query(
+      "SELECT status, COUNT(*)::int AS count FROM reviews WHERE status IN ('watched', 'watching') GROUP BY status"
+    );
+    const counts = Object.fromEntries(rows.map(r => [r.status, r.count]));
+    const total = filmsData.length;
+    const watched = counts.watched ?? 0;
+    const watching = counts.watching ?? 0;
+    res.json({ total, watched, watching, unwatched: total - watched - watching });
+  } catch (e) {
+    logger.error({ ip: req.ip, path: req.path, err: e.message }, 'server error');
+    res.status(500).json({
+      error: '서버 오류가 발생했어요',
+      ...(process.env.NODE_ENV !== 'production' && { detail: e.message }),
+    });
+  }
+});
+
+// PUT /api/reviews/:film_title_en — 상태/감상평 UPSERT
+app.put('/api/reviews/:film_title_en', authLimiter, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'DB not configured' });
+  const authed = await requireAdmin(req, res);
+  if (!authed) return;
+
+  const filmTitle = decodeURIComponent(req.params.film_title_en);
+  const { status } = req.body;
+
+  if (!status || !['unwatched', 'watching', 'watched'].includes(status)) {
+    return res.status(400).json({ error: "status는 'unwatched', 'watching', 'watched' 중 하나여야 해요" });
+  }
+
+  // content 규칙: 생략 → null (INSERT시 null, UPDATE시 기존 유지 via COALESCE)
+  const contentParam = 'content' in req.body ? req.body.content : null;
+
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO reviews (film_title_en, status, content)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (film_title_en) DO UPDATE SET
+         status = EXCLUDED.status,
+         content = COALESCE(EXCLUDED.content, reviews.content),
+         updated_at = now()
+       RETURNING film_title_en, status, content, updated_at`,
+      [filmTitle, status, contentParam]
+    );
+    logger.info({ ip: req.ip, film: filmTitle, status }, 'review upserted');
+    res.json({ review: rows[0] });
   } catch (e) {
     logger.error({ ip: req.ip, path: req.path, err: e.message }, 'server error');
     res.status(500).json({

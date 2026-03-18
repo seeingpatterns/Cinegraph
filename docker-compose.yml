@@ -35,11 +35,13 @@ services:
       DATABASE_URL: postgresql://dev:dev@db:5432/trace
       ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:-$$2b$$12$$NSkT1UYpF387gpX76XUL7eMegwL1UvHrLIxrtWOldfi1zrdI0RTei}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5174}
+      FILMS_JSON_PATH: /data/films_embedded.json
     ports:
       - "3001:3000"   # 호스트 3001 → 컨테이너 3000 (Psychpaper이 3000 사용 중)
     volumes:
       - ./backend:/app
       - /app/node_modules  # 로컬 node_modules 제외 (컨테이너 내부 것 사용)
+      - ./films_embedded.json:/data/films_embedded.json:ro
     depends_on:
       db:
         condition: service_healthy
