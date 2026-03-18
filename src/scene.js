@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import gsap from 'gsap';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -206,6 +207,38 @@ function setHighlightedFilms(indices) {
 }
 
 // ═══════════════════════════════════════════════
+// 상태 기반 시각 인코딩
+// ═══════════════════════════════════════════════
+
+const STATUS_VISUALS = {
+  unwatched: { brightness: 0.25, saturation: 0.15 },
+  watching:  { brightness: 0.6,  saturation: 0.5  },
+  watched:   { brightness: 1.0,  saturation: 1.0  },
+};
+
+let _filmStatuses = [];
+let _appMode = 'fallback';
+
+/**
+ * 클러스터 기본 색상에 status 기반 밝기+채도를 적용
+ * 타겟 기반 보간
+ */
+function applyStatusVisuals(baseColor, status) {
+  const target = STATUS_VISUALS[status] || STATUS_VISUALS.unwatched;
+  const hsl = {};
+  baseColor.getHSL(hsl);
+  const targetS = hsl.s * target.saturation;
+  const targetL = Math.max(hsl.l * target.brightness, 0.03);
+  const result = new THREE.Color();
+  result.setHSL(hsl.h, targetS, targetL);
+  return result;
+}
+
+function setSceneMode(mode) {
+  _appMode = mode;
+}
+
+// ═══════════════════════════════════════════════
 // buildConstellation — 성좌 생성
 // ═══════════════════════════════════════════════
 
@@ -312,15 +345,25 @@ function buildConstellation(films, highlightUser, userFilmIndices) {
   }
 
   // ── 영화 노드: 큰 파티클 ──
+  _filmStatuses = films.map(f => f.status || 'unwatched');
+
   const nodePosArr = [], nodeColArr = [], nodeSizeArr = [];
   films.forEach((f, i) => {
-    const c = COLORS[f.cluster % COLORS.length];
+    const baseColor = COLORS[f.cluster % COLORS.length];
     const isUserFilm = highlightUser && userFilmIndices.includes(i);
     const isDimmed = highlightUser && !isUserFilm;
-    const mult = isDimmed ? 0.12 : isUserFilm ? 1.5 : 1.0;
+
+    let finalColor;
+    if (isDimmed) {
+      finalColor = { r: baseColor.r * 0.12, g: baseColor.g * 0.12, b: baseColor.b * 0.12 };
+    } else if (isUserFilm) {
+      finalColor = { r: baseColor.r * 1.5, g: baseColor.g * 1.5, b: baseColor.b * 1.5 };
+    } else {
+      finalColor = applyStatusVisuals(baseColor, _filmStatuses[i]);
+    }
 
     nodePosArr.push(f.nx, f.ny, f.nz);
-    nodeColArr.push(c.r * mult, c.g * mult, c.b * mult);
+    nodeColArr.push(finalColor.r, finalColor.g, finalColor.b);
     nodeSizeArr.push((isUserFilm ? 9 : isDimmed ? 3 : 5) * pixelRatio);
   });
 
@@ -412,6 +455,24 @@ function render(a) {
     sizes.needsUpdate = true;
   }
 
+  // watching 상태 별 미세 halo 효과 (호흡 2.5초 주기)
+  if (filmNodePoints && _filmStatuses.length > 0) {
+    const colors = filmNodePoints.geometry.attributes.color;
+    const breathe = Math.sin(a * 0.0025) * 0.08 + 0.08; // 0 ~ 0.16 범위
+    let needsColorUpdate = false;
+    for (let i = 0; i < _filmStatuses.length; i++) {
+      if (_filmStatuses[i] !== 'watching') continue;
+      if (_userFilmIndices.length > 0) continue;
+      const baseColor = COLORS[_films[i].cluster % COLORS.length];
+      const target = applyStatusVisuals(baseColor, 'watching');
+      colors.array[i * 3] = target.r + breathe;
+      colors.array[i * 3 + 1] = target.g + breathe;
+      colors.array[i * 3 + 2] = target.b + breathe;
+      needsColorUpdate = true;
+    }
+    if (needsColorUpdate) colors.needsUpdate = true;
+  }
+
   composer.render();
 }
 
@@ -436,6 +497,82 @@ function handleResize() {
   bloomPass.setSize(window.innerWidth, window.innerHeight);
 }
 
+/**
+ * 영화 상태 변경 시 별 시각 업데이트 (단일 진입점)
+ */
+function updateFilmStatus(filmIndex, newStatus, films) {
+  _filmStatuses[filmIndex] = newStatus;
+
+  const baseColor = COLORS[films[filmIndex].cluster % COLORS.length];
+  const targetColor = applyStatusVisuals(baseColor, newStatus);
+
+  if (!filmNodePoints) return;
+
+  const colors = filmNodePoints.geometry.attributes.color;
+  const currentR = colors.array[filmIndex * 3];
+  const currentG = colors.array[filmIndex * 3 + 1];
+  const currentB = colors.array[filmIndex * 3 + 2];
+
+  const proxy = { r: currentR, g: currentG, b: currentB };
+  gsap.to(proxy, {
+    r: targetColor.r,
+    g: targetColor.g,
+    b: targetColor.b,
+    duration: 0.5,
+    ease: 'power2.out',
+    onUpdate: () => {
+      colors.array[filmIndex * 3] = proxy.r;
+      colors.array[filmIndex * 3 + 1] = proxy.g;
+      colors.array[filmIndex * 3 + 2] = proxy.b;
+      colors.needsUpdate = true;
+    },
+  });
+}
+
+/**
+ * 마일스톤 bloom 펄스 (25/50/75%)
+ */
+function triggerMilestoneBoom() {
+  const original = bloomPass.strength;
+  gsap.to(bloomPass, {
+    strength: 1.2,
+    duration: 0.5,
+    ease: 'power2.out',
+    onComplete: () => {
+      gsap.to(bloomPass, { strength: original, duration: 0.5, ease: 'power2.in' });
+    },
+  });
+}
+
+/**
+ * 106/106 완료 축하 (절제된 버전)
+ */
+function celebrateCompletion() {
+  const original = bloomPass.strength;
+  gsap.to(bloomPass, {
+    strength: 1.5,
+    duration: 0.8,
+    ease: 'power2.out',
+    onComplete: () => {
+      gsap.to(bloomPass, { strength: original, duration: 0.8, ease: 'power2.in' });
+    },
+  });
+
+  const sampleCount = Math.floor(Math.random() * 6) + 10;
+  const indices = [];
+  while (indices.length < sampleCount && indices.length < _films.length) {
+    const idx = Math.floor(Math.random() * _films.length);
+    if (!indices.includes(idx)) indices.push(idx);
+  }
+  indices.forEach(idx => {
+    for (let j = 0; j < 5; j++) {
+      const spark = new Sparkle();
+      spark.setup(filmPositions3D[idx], new THREE.Color('#ffffff'));
+      sparkles.push(spark);
+    }
+  });
+}
+
 // ═══════════════════════════════════════════════
 // Exports
 // ═══════════════════════════════════════════════
@@ -446,4 +583,5 @@ export {
   Sparkle, pixelRatio,
   buildConstellation, startRender, handleResize, setDragging, setHighlightedFilms,
   lines, starsGeometry, sparklesGeometry, galaxyPoints, stars,
+  updateFilmStatus, setSceneMode, triggerMilestoneBoom, celebrateCompletion,
 };
