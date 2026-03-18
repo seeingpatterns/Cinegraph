@@ -130,7 +130,11 @@ app.get('/api/reviews/:film_title_en', async (req, res) => {
 app.post('/api/reviews', async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'DB not configured' });
   const { film_title_en, content, password } = req.body;
-  const match = await bcrypt.compare(password || '', process.env.ADMIN_PASSWORD_HASH || '');
+  const hash = process.env.ADMIN_PASSWORD_HASH;
+  if (!hash || !password) {
+    return res.status(401).json({ error: '비밀번호가 틀렸어요' });
+  }
+  const match = await bcrypt.compare(password, hash);
   if (!match) {
     return res.status(401).json({ error: '비밀번호가 틀렸어요' });
   }
@@ -158,7 +162,11 @@ app.post('/api/reviews', async (req, res) => {
 app.put('/api/reviews/:id', async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'DB not configured' });
   const { content, password } = req.body;
-  const match = await bcrypt.compare(password || '', process.env.ADMIN_PASSWORD_HASH || '');
+  const hash = process.env.ADMIN_PASSWORD_HASH;
+  if (!hash || !password) {
+    return res.status(401).json({ error: '비밀번호가 틀렸어요' });
+  }
+  const match = await bcrypt.compare(password, hash);
   if (!match) {
     return res.status(401).json({ error: '비밀번호가 틀렸어요' });
   }
