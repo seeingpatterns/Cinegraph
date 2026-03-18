@@ -6,11 +6,31 @@ import express from 'express';
 import helmet from 'helmet';
 import pg from 'pg';
 import bcrypt from 'bcrypt';
+import rateLimit from 'express-rate-limit';
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(helmet());
+
+// Rate limiting
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: '너무 많은 요청이에요. 잠시 후 다시 시도해주세요' },
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: '너무 많은 요청이에요. 잠시 후 다시 시도해주세요' },
+});
+
+app.use(generalLimiter);
 
 // 로컬 프론트엔드(Vite)에서 API 호출 허용
 app.use((req, res, next) => {
@@ -127,7 +147,7 @@ app.get('/api/reviews/:film_title_en', async (req, res) => {
 });
 
 // POST /api/reviews — 감상평 작성 (비밀번호 인증)
-app.post('/api/reviews', async (req, res) => {
+app.post('/api/reviews', authLimiter, async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'DB not configured' });
   const { film_title_en, content, password } = req.body;
   const hash = process.env.ADMIN_PASSWORD_HASH;
@@ -159,7 +179,7 @@ app.post('/api/reviews', async (req, res) => {
 });
 
 // PUT /api/reviews/:id — 감상평 수정
-app.put('/api/reviews/:id', async (req, res) => {
+app.put('/api/reviews/:id', authLimiter, async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'DB not configured' });
   const { content, password } = req.body;
   const hash = process.env.ADMIN_PASSWORD_HASH;
