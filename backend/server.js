@@ -95,6 +95,11 @@ app.get('/health', (req, res) => {
   res.json({ ok: true, service: 'trace-backend' });
 });
 
+// 프론트 호환: /api/health 기대 경로 지원
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true, service: 'trace-backend' });
+});
+
 // Spec.me: DB client confirms schema is present (tables exist)
 app.get('/api/schema-check', devOnly, async (req, res) => {
   if (!pool) {

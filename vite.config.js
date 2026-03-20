@@ -4,7 +4,14 @@ export default defineConfig({
   root: '.',
   publicDir: 'public',
   server: {
-    port: 5174, // Psychpaper이 5173 사용 중
+    port: 5174,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   build: {
     outDir: 'dist',

@@ -168,7 +168,11 @@ export async function loadFilms() {
     const resp = await fetch(`${API_BASE}/api/films`);
     if (!resp.ok) throw new Error(`API ${resp.status}`);
     const raw = await resp.json();
-    const films = raw.map(f => ({
+    const filmsArray = Array.isArray(raw) ? raw : raw?.films;
+    if (!Array.isArray(filmsArray)) {
+      throw new Error('Unexpected API response shape');
+    }
+    const films = filmsArray.map(f => ({
       ...f,
       status: f.status || 'unwatched',
       review: f.content ?? null,

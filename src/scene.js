@@ -95,6 +95,7 @@ const dotTexture = createDotTexture();
 
 const sparkles = [];
 const sparklesGeometry = new THREE.BufferGeometry();
+let _sparklesAttrCount = 0; // sparkles 길이와 color/size 버퍼 길이를 동기화하기 위한 추적값
 const sparklesMaterial = new THREE.ShaderMaterial({
   uniforms: {
     pointTexture: { value: dotTexture }
@@ -142,6 +143,7 @@ function updateSparklesGeometry() {
   });
   sparklesGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   sparklesGeometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+  _sparklesAttrCount = sparkles.length;
 }
 
 // ═══════════════════════════════════════════════
@@ -385,6 +387,9 @@ function buildConstellation(films, highlightUser, userFilmIndices) {
       sparkles.push(spark);
     }
   });
+
+  // 초기 sparkle 생성 직후 color/size 버퍼도 1회 동기화
+  updateSparklesGeometry();
 }
 
 // ═══════════════════════════════════════════════
@@ -429,6 +434,15 @@ function render(a) {
       updateSparklesGeometry();
     }
     _prev = a;
+  }
+
+  // hover/click 등으로 sparkles.length가 변하면 draw 직전에 color/size도 즉시 동기화
+  const sizeAttr = sparklesGeometry.getAttribute('size');
+  const colorAttr = sparklesGeometry.getAttribute('color');
+  const sizeCount = sizeAttr ? sizeAttr.count : 0;
+  const colorCount = colorAttr ? colorAttr.count : 0;
+  if (sparkles.length !== _sparklesAttrCount || sizeCount !== sparkles.length || colorCount !== sparkles.length) {
+    updateSparklesGeometry();
   }
 
   // Sparkle 위치 업데이트
