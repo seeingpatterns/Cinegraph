@@ -1,6 +1,6 @@
 import { loadFilms, buildRecommenderProfiles } from './data.js';
 import { buildConstellation, startRender } from './scene.js';
-import { buildLegend, bindEvents, setRecommenderFilmIndices, setAppMode, findMyStars, resetStars, bindReviewEvents, initProgressUI } from './ui.js';
+import { buildLegend, bindEvents, setRecommenderFilmIndices, setAppMode, findMyStars, resetStars, bindReviewEvents, initProgressUI, showRecommenderDetail } from './ui.js';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
 
@@ -37,6 +37,8 @@ async function init() {
       countSpan.textContent = recommenderFilmIndices.length;
       banner.appendChild(countSpan);
       banner.appendChild(document.createTextNode('편이 빛나고 있어요! 찾아보세요'));
+      // Detail Panel 자동 오픈 (primary entry flow)
+      showRecommenderDetail(highlightRecommender, films);
     }
   }
 
