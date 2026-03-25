@@ -244,7 +244,7 @@ function setSceneMode(mode) {
 // buildConstellation — 성좌 생성
 // ═══════════════════════════════════════════════
 
-function buildConstellation(films, highlightUser, userFilmIndices) {
+function buildConstellation(films, highlightRecommender, recommenderFilmIndices) {
   // 좌표 정규화 → -0.6 ~ 0.6 범위 (CodePen 해골과 비슷한 스케일)
   const xs = films.map(f => f.x);
   const ys = films.map(f => f.y);
@@ -352,8 +352,8 @@ function buildConstellation(films, highlightUser, userFilmIndices) {
   const nodePosArr = [], nodeColArr = [], nodeSizeArr = [];
   films.forEach((f, i) => {
     const baseColor = COLORS[f.cluster % COLORS.length];
-    const isHighlighted = highlightUser && userFilmIndices.includes(i);
-    const isDimmed = highlightUser && !isHighlighted;
+    const isHighlighted = highlightRecommender && recommenderFilmIndices.includes(i);
+    const isDimmed = highlightRecommender && !isHighlighted;
 
     let finalColor;
     if (isDimmed) {
@@ -379,7 +379,7 @@ function buildConstellation(films, highlightUser, userFilmIndices) {
   // ── 각 영화에서 초기 Sparkle 분출 ──
   films.forEach((f, i) => {
     const color = COLORS[f.cluster % COLORS.length];
-    const isHighlighted = highlightUser && userFilmIndices.includes(i);
+    const isHighlighted = highlightRecommender && recommenderFilmIndices.includes(i);
     const count = isHighlighted ? 15 : 3; // 추천자 영화는 스파클 폭발
     for (let j = 0; j < count; j++) {
       const spark = new Sparkle();

@@ -1,6 +1,6 @@
 import { loadFilms, buildRecommenderProfiles } from './data.js';
 import { buildConstellation, startRender } from './scene.js';
-import { buildLegend, bindEvents, setUserFilmIndices, setAppMode, findMyStars, resetStars, bindReviewEvents, initProgressUI } from './ui.js';
+import { buildLegend, bindEvents, setRecommenderFilmIndices, setAppMode, findMyStars, resetStars, bindReviewEvents, initProgressUI } from './ui.js';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
 
@@ -41,7 +41,7 @@ async function init() {
   }
 
   // ui.js에 추천자 영화 인덱스 전달
-  setUserFilmIndices(recommenderFilmIndices);
+  setRecommenderFilmIndices(recommenderFilmIndices);
 
   // 헤더 카운터 업데이트
   document.querySelector('.header-right').innerHTML = `${films.length} Films<br>Neural Constellation`;

@@ -22,7 +22,7 @@ let hasDragged = false;
 let dragStart = { x: 0, y: 0 };
 
 let recommenderFilmIndices = [];
-export function setUserFilmIndices(indices) { recommenderFilmIndices = indices; }
+export function setRecommenderFilmIndices(indices) { recommenderFilmIndices = indices; }
 
 let _activeThreadId = '';
 let _currentFilmTitleEn = '';
