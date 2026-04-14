@@ -1243,6 +1243,8 @@
     "recommender": "moment_.light",
     "note": "가부키를 소재로 한 일본 실사 영화, 일본에서 1200만 관객 돌파",
     "description": "가부키 명문가의 후계자가 예술과 욕망, 운명 사이에서 갈등하는 이야기. 전통 예술, 집착, 재능, 일본 가부키의 세계.",
+    "psych_oneliner": "그림자(천한 피)를 지우려 가면(온나가타)에 자신을 용접해버린 남자의 소멸 서사.",
+    "psych_cards": "kokuho-shadow-persona",
     "x": 0.2438,
     "y": 6.7016,
     "cluster": 2

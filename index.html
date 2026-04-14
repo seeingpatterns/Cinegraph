@@ -151,6 +151,33 @@
   .card-note::before { content: '\201C'; }
   .card-note::after { content: '\201D'; }
 
+  .card-psych {
+    margin-top: 10px; padding-top: 10px;
+    border-top: 1px solid rgba(212,197,169,0.15);
+    font-size: 12px; line-height: 1.65;
+    color: #d4c5a9; letter-spacing: 0.2px;
+  }
+  .card-psych-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #8a847a; margin-bottom: 4px;
+    display: block;
+  }
+  .card-deeper {
+    display: inline-block; margin-top: 10px;
+    font-size: 11px; letter-spacing: 1.5px;
+    text-transform: uppercase; text-decoration: none;
+    color: #d4c5a9; border: 1px solid rgba(212,197,169,0.35);
+    padding: 6px 12px; border-radius: 2px;
+    transition: all .2s ease;
+    pointer-events: auto;
+  }
+  .card-deeper:hover {
+    color: #fff; border-color: rgba(212,197,169,0.8);
+    background: rgba(212,197,169,0.06);
+  }
+
   .counter {
     position: fixed; bottom: 24px; right: 36px; z-index: 100;
     font-family: 'Cormorant Garamond', serif;
@@ -348,6 +375,11 @@
   <div class="card-meta" id="card-meta"></div>
   <div class="card-desc" id="card-desc"></div>
   <div class="card-note" id="card-note"></div>
+  <div class="card-psych" id="card-psych" style="display:none;">
+    <span class="card-psych-label">Psych Layer</span>
+    <div id="card-psych-text"></div>
+    <a class="card-deeper" id="card-deeper" href="#" target="_blank" rel="noopener" style="display:none;">깊이 보기 →</a>
+  </div>
 </div>
 
 <script>
@@ -946,6 +978,24 @@ function updateCard(mx, my) {
   const noteEl = document.getElementById('card-note');
   if (f.note) { noteEl.textContent = f.note; noteEl.style.display = 'block'; }
   else { noteEl.style.display = 'none'; }
+
+  const psychWrap = document.getElementById('card-psych');
+  const psychText = document.getElementById('card-psych-text');
+  const deeperBtn = document.getElementById('card-deeper');
+  const hasOneliner = typeof f.psych_oneliner === 'string' && f.psych_oneliner.length > 0;
+  const hasCards = typeof f.psych_cards === 'string' && /^[a-z0-9-]+$/.test(f.psych_cards);
+  if (hasOneliner || hasCards) {
+    psychWrap.style.display = 'block';
+    psychText.textContent = hasOneliner ? f.psych_oneliner : '';
+    if (hasCards) {
+      deeperBtn.href = `film/${f.psych_cards}/cards.html`;
+      deeperBtn.style.display = 'inline-block';
+    } else {
+      deeperBtn.style.display = 'none';
+    }
+  } else {
+    psychWrap.style.display = 'none';
+  }
 
   positionCard(mx, my);
   card.classList.add('visible');
